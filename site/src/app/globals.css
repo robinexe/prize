@@ -1,0 +1,345 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== THEME SYSTEM ===== */
+:root {
+  --primary: #FF6B00;
+  --secondary: #1E3A5F;
+
+  /* Light mode palette */
+  --c-s-50: 239 246 255;
+  --c-s-100: 226 232 240;
+  --c-s-200: 203 213 225;
+  --c-s-300: 148 163 184;
+  --c-s-400: 100 116 139;
+  --c-s-500: 71 85 105;
+  --c-s-600: 51 65 85;
+  --c-s-700: 30 41 59;
+  --c-s-800: 241 245 249;
+  --c-s-900: 249 250 251;
+  --c-s-950: 255 255 255;
+
+  /* Foreground (text) */
+  --c-fg: 15 23 42;
+}
+
+.dark {
+  /* Dark mode palette */
+  --c-s-50: 239 246 255;
+  --c-s-100: 219 234 254;
+  --c-s-200: 191 219 254;
+  --c-s-300: 147 197 253;
+  --c-s-400: 96 165 250;
+  --c-s-500: 30 58 95;
+  --c-s-600: 30 58 95;
+  --c-s-700: 29 53 87;
+  --c-s-800: 21 42 69;
+  --c-s-900: 13 27 42;
+  --c-s-950: 7 14 23;
+
+  /* Foreground (text) */
+  --c-fg: 255 255 255;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar — see bottom of file for theme-aware styles */
+
+/* Hide scrollbar for carousels */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes wave {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  33% { transform: translateY(-6px) rotate(1deg); }
+  66% { transform: translateY(3px) rotate(-1deg); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(255, 107, 0, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(255, 107, 0, 0.6); }
+}
+
+@keyframes count-up {
+  from { opacity: 0; transform: scale(0.5); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-fade-in-up { animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+.animate-slide-left { animation: slideInLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-slide-right { animation: slideInRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-wave { animation: wave 3s ease-in-out infinite; }
+.animate-float { animation: float 6s ease-in-out infinite; }
+.animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+.animation-delay-200 { animation-delay: 0.2s; }
+.animation-delay-400 { animation-delay: 0.4s; }
+.animation-delay-600 { animation-delay: 0.6s; }
+
+/* ===== SCROLL-REVEAL & LIGHTBOX ANIMATIONS ===== */
+@keyframes heroReveal {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes heroLocationReveal {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes scaleXIn {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@keyframes bounceY {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+@keyframes lightboxIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes lightboxImgIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+.lightbox-enter { animation: lightboxIn 0.3s ease-out forwards; }
+.lightbox-img-enter { animation: lightboxImgIn 0.3s cubic-bezier(0.22,1,0.36,1) forwards; }
+
+/* Scroll-reveal: used with IntersectionObserver adding .is-visible */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s cubic-bezier(0.22,1,0.36,1), transform 0.6s cubic-bezier(0.22,1,0.36,1);
+}
+.reveal.from-left { transform: translateX(-40px) translateY(0); }
+.reveal.from-right { transform: translateX(40px) translateY(0); }
+.reveal.from-none { transform: none; }
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0) translateX(0);
+}
+
+/* ===== WAVE DIVIDERS ===== */
+@keyframes waveScrollLeft {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes waveScrollRight {
+  from { transform: translateX(-50%); }
+  to { transform: translateX(0); }
+}
+.wave-scroll-slow  { animation: waveScrollLeft 18s linear infinite; }
+.wave-scroll-mid   { animation: waveScrollRight 14s linear infinite; }
+.wave-scroll-fast  { animation: waveScrollLeft 10s linear infinite; }
+.wave-scroll-front { animation: waveScrollRight 22s linear infinite; }
+
+/* ===== JET SKI ANIMATIONS ===== */
+/* 2 jet skis, different speeds & directions */
+@keyframes jetskiRide1 {
+  0%   { left: -100px; }
+  100% { left: calc(100% + 100px); }
+}
+@keyframes jetskiRide2 {
+  0%   { left: calc(100% + 80px); }
+  100% { left: -80px; }
+}
+
+.jetski-ride-1 { animation: jetskiRide1 10s linear infinite; }
+.jetski-ride-2 { animation: jetskiRide2 13s linear infinite 4s; }
+
+/* Jet ski 2 goes right-to-left — flip it */
+.jetski-ride-2 svg { transform: scaleX(-1); }
+
+/* Gentle wave bobbing — no stunts */
+@keyframes bob1 {
+  0%, 100% { transform: translateY(0) rotate(-1deg); }
+  20%      { transform: translateY(-5px) rotate(2deg); }
+  40%      { transform: translateY(3px) rotate(-2deg); }
+  60%      { transform: translateY(-7px) rotate(3deg); }
+  80%      { transform: translateY(2px) rotate(-1deg); }
+}
+@keyframes bob2 {
+  0%, 100% { transform: translateY(0) rotate(1deg); }
+  25%      { transform: translateY(-4px) rotate(-2deg); }
+  50%      { transform: translateY(4px) rotate(2deg); }
+  75%      { transform: translateY(-6px) rotate(-1deg); }
+}
+
+.jetski-bob-1 { animation: bob1 3s ease-in-out infinite; transform-origin: center bottom; }
+.jetski-bob-2 { animation: bob2 3.5s ease-in-out infinite; transform-origin: center bottom; }
+
+/* Wake spray */
+.jetski-wake-1 { opacity: 0.4; }
+.jetski-wake-2 { opacity: 0.35; }
+
+/* Spray drops */
+@keyframes sprayDrop1 {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.3; }
+  50%      { transform: translate(-6px, -8px) scale(1.4); opacity: 0.15; }
+}
+@keyframes sprayDrop2 {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.25; }
+  50%      { transform: translate(-4px, -12px) scale(1.3); opacity: 0.1; }
+}
+@keyframes sprayDrop3 {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.2; }
+  50%      { transform: translate(-8px, -6px) scale(1.5); opacity: 0.1; }
+}
+@keyframes frontSpray {
+  0%, 100% { opacity: 0.5; transform: translateY(0); }
+  50%      { opacity: 0.2; transform: translateY(-3px); }
+}
+
+.spray-drop-1  { animation: sprayDrop1 1.2s ease-in-out infinite; }
+.spray-drop-2  { animation: sprayDrop2 1s ease-in-out infinite 0.15s; }
+.spray-drop-3  { animation: sprayDrop3 1.4s ease-in-out infinite 0.3s; }
+.front-spray   { animation: frontSpray 0.8s ease-in-out infinite; }
+
+/* ===== MOBILE BOTTOM BAR SAFE AREA ===== */
+.pb-mobile-bar { padding-bottom: 72px; }
+@media (min-width: 1024px) { .pb-mobile-bar { padding-bottom: 0; } }
+
+/* ===== GLASS MORPHISM ===== */
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+:root .glass {
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.dark .glass {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-light {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* ===== GRADIENT TEXT ===== */
+.text-gradient {
+  background: linear-gradient(135deg, #FB923C 0%, #FF6B00 50%, #EA580C 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ===== SCROLLBAR - theme aware ===== */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+.dark::-webkit-scrollbar-thumb { background: #334155; }
+.dark::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+/* ===== SAFE AREA ===== */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
+}
+
+/* ===== SWIPER CUSTOM ARROWS ===== */
+.story-swiper .swiper-button-prev,
+.story-swiper .swiper-button-next {
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 107, 0, 0.9);
+  border-radius: 50%;
+  color: #fff;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(255, 107, 0, 0.3);
+}
+.story-swiper .swiper-button-prev:hover,
+.story-swiper .swiper-button-next:hover {
+  background: rgba(255, 107, 0, 1);
+  transform: scale(1.1);
+  box-shadow: 0 6px 24px rgba(255, 107, 0, 0.5);
+}
+.story-swiper .swiper-button-prev::after,
+.story-swiper .swiper-button-next::after {
+  font-size: 18px;
+  font-weight: 900;
+}
+.story-swiper .swiper-button-prev { left: 12px; }
+.story-swiper .swiper-button-next { right: 12px; }
+.story-swiper .swiper-pagination-bullet {
+  background: rgba(255, 255, 255, 0.4);
+  opacity: 1;
+  width: 10px;
+  height: 10px;
+}
+.story-swiper .swiper-pagination-bullet-active {
+  background: #FF6B00;
+  width: 28px;
+  border-radius: 5px;
+}
+@media (max-width: 640px) {
+  .story-swiper .swiper-button-prev,
+  .story-swiper .swiper-button-next {
+    width: 36px;
+    height: 36px;
+  }
+  .story-swiper .swiper-button-prev::after,
+  .story-swiper .swiper-button-next::after {
+    font-size: 14px;
+  }
+}

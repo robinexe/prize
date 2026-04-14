@@ -1,0 +1,22 @@
+            id             |          boatId           | status  |  category   |                 description                  | amount 
+---------------------------+---------------------------+---------+-------------+----------------------------------------------+--------
+ cmnt8mpta000gj18ydp4acs3b | cmnt8mprj0005j18yda5rqfx4 | PAID    | MONTHLY_FEE | Mensalidade Abril — Wave Runner Pro (Cota 2) |   1200
+ cmnt8mpta000hj18yxusmngo1 | cmnt8mprj0005j18yda5rqfx4 | PAID    | MONTHLY_FEE | Mensalidade Março — Wave Runner Pro (Cota 1) |   1200
+ cmnu18wok0003h4q0xzd41d4c | cmnt8mprj0005j18yda5rqfx4 | PAID    | FUEL        | Combustível — Wave Runner Pro (5L)           |  34.45
+ cmnt8mpta000fj18y09if5bam | cmnt8mprj0005j18yda5rqfx4 | PAID    | MONTHLY_FEE | Mensalidade Abril — Wave Runner Pro (Cota 1) |   1200
+ cmnt8mpta000ij18y1t82b937 | cmnt8mprx0006j18ygu4idk1r | OVERDUE | FUEL        | Combustível — Sea Phantom (40L)              |    280
+ cmnvy54x60005j5ung4nl9s8c | cmnt8mprx0006j18ygu4idk1r | PENDING | FUEL        | Combustível — Sea Phantom (24L)              | 165.36
+ cmnvwyih0000dxj6vdjbqteqn | cmnt8mpsc0007j18yba2hrgyp | PENDING | QUOTA_SALE  | Parcela 3/10 — Cota Thunder Jet              |   2000
+ cmnvwyih0000fxj6v57wobrp3 | cmnt8mpsc0007j18yba2hrgyp | PENDING | QUOTA_SALE  | Parcela 4/10 — Cota Thunder Jet              |   2000
+ cmnvwyih0000hxj6vz3i9kgz6 | cmnt8mpsc0007j18yba2hrgyp | PENDING | QUOTA_SALE  | Parcela 5/10 — Cota Thunder Jet              |   2000
+ cmnvwyih0000jxj6vegku622s | cmnt8mpsc0007j18yba2hrgyp | PENDING | QUOTA_SALE  | Parcela 6/10 — Cota Thunder Jet              |   2000
+ cmnvwyih0000lxj6vbc6n244w | cmnt8mpsc0007j18yba2hrgyp | PENDING | QUOTA_SALE  | Parcela 7/10 — Cota Thunder Jet              |   2000
+ cmnvwyih0000nxj6v72pikj9y | cmnt8mpsc0007j18yba2hrgyp | PENDING | QUOTA_SALE  | Parcela 8/10 — Cota Thunder Jet              |   2000
+ cmnvwyih1000pxj6vctxkzasv | cmnt8mpsc0007j18yba2hrgyp | PENDING | QUOTA_SALE  | Parcela 9/10 — Cota Thunder Jet              |   2000
+ cmnvwyih1000rxj6v83flu0d1 | cmnt8mpsc0007j18yba2hrgyp | PENDING | QUOTA_SALE  | Parcela 10/10 — Cota Thunder Jet             |   2000
+ cmnvwyih1000txj6vv3rguf2i | cmnt8mpsc0007j18yba2hrgyp | PENDING | MONTHLY_FEE | Mensalidade — Thunder Jet (05/2026)          |    350
+ cmnvwyigz0009xj6veijjleo1 | cmnt8mpsc0007j18yba2hrgyp | PENDING | QUOTA_SALE  | Entrada — Venda de Cota Thunder Jet (1/10)   |  30000
+ cmntyzvi50007irjh3ya2zbzu | cmnt8mpsc0007j18yba2hrgyp | PENDING | FUEL        | Combustível — Thunder Jet (3L)               |  20.67
+ cmnvwyih0000bxj6vq81jkuil | cmnt8mpsc0007j18yba2hrgyp | PENDING | QUOTA_SALE  | Parcela 2/10 — Cota Thunder Jet              |   2000
+(18 rows)
+

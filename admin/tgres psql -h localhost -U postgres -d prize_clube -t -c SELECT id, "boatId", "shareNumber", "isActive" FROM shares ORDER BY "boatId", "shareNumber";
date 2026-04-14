@@ -1,0 +1,16 @@
+            id             |          boatId           |          userId           | shareNumber | isActive 
+---------------------------+---------------------------+---------------------------+-------------+----------
+ cmnt8mpsp0008j18yoa67igmf | cmnt8mprj0005j18yda5rqfx4 | cmnt8mpqt0002j18yfgqx30tj |           1 | f
+ cmnt8mpsp0009j18yjmi28phk | cmnt8mprj0005j18yda5rqfx4 | cmnt8mpr10003j18y0r7kdsmz |           2 | t
+ cmnwoj7yo000rtl3km6jos7d6 | cmnt8mprj0005j18yda5rqfx4 | cmnt8mpqt0002j18yfgqx30tj |           3 | f
+ cmnwojxdv0011tl3k61ajvv9z | cmnt8mprj0005j18yda5rqfx4 | cmnt8mpqt0002j18yfgqx30tj |           4 | f
+ cmnwol80s0013tl3kwkqke1jo | cmnt8mprj0005j18yda5rqfx4 | cmnt8mpqt0002j18yfgqx30tj |           5 | f
+ cmnt8mpsp000aj18ybeczqz6b | cmnt8mprx0006j18ygu4idk1r | cmnt8mpqt0002j18yfgqx30tj |           1 | f
+ cmnt8mpsp000bj18yth7vki5f | cmnt8mprx0006j18ygu4idk1r | cmnt8mpr90004j18yneet9w1p |           2 | t
+ cmntbhj3t000b19vqvr4w8vzt | cmnt8mprx0006j18ygu4idk1r | cmnt8mppc0000j18ykam974d2 |           3 | t
+ cmntbhtsp000d19vqxj0y9wmp | cmnt8mprx0006j18ygu4idk1r | cmnt8mpr90004j18yneet9w1p |           4 | t
+ cmnworn5w000610hhuelu0758 | cmnt8mprx0006j18ygu4idk1r | cmnwom5jf000010hho1or66pu |           5 | f
+ cmnt8mpsp000cj18yveuox059 | cmnt8mpsc0007j18yba2hrgyp | cmnt8mpr10003j18y0r7kdsmz |           1 | t
+ cmnvwyief0005xj6vha9f2lu8 | cmnt8mpsc0007j18yba2hrgyp | cmnt8mpqt0002j18yfgqx30tj |           2 | f
+(12 rows)
+

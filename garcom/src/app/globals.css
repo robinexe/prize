@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---- Light mode (default) ---- */
+:root {
+  --bg: #F5F7FA;
+  --card: #FFFFFF;
+  --card-hover: #F0F2F5;
+  --text: #1A1A2E;
+  --text-secondary: rgba(0,0,0,0.55);
+  --text-muted: rgba(0,0,0,0.35);
+  --border: rgba(0,0,0,0.1);
+  --input-bg: rgba(0,0,0,0.04);
+  --input-border: rgba(0,0,0,0.15);
+  --subtle: rgba(0,0,0,0.05);
+  --subtle-hover: rgba(0,0,0,0.08);
+  --header-bg: rgba(245,247,250,0.92);
+  --overlay: rgba(0,0,0,0.5);
+}
+
+/* ---- Dark mode ---- */
+.dark {
+  --bg: #0D1B2A;
+  --card: #111D2E;
+  --card-hover: #162636;
+  --text: #F1F5F9;
+  --text-secondary: rgba(255,255,255,0.6);
+  --text-muted: rgba(255,255,255,0.35);
+  --border: rgba(255,255,255,0.08);
+  --input-bg: rgba(255,255,255,0.05);
+  --input-border: rgba(255,255,255,0.1);
+  --subtle: rgba(255,255,255,0.05);
+  --subtle-hover: rgba(255,255,255,0.1);
+  --header-bg: rgba(13,27,42,0.92);
+  --overlay: rgba(0,0,0,0.7);
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Prevent zoom on input focus (mobile) */
+input, select, textarea {
+  font-size: 16px !important;
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #FF6B00, #FF8C33);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}

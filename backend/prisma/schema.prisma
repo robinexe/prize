@@ -1,0 +1,913 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum Role {
+  ADMIN
+  OPERATOR
+  CLIENT
+  WAITER
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  IN_USE
+  COMPLETED
+  CANCELLED
+}
+
+enum ChargeStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  PIX
+  CREDIT_CARD
+  BANK_TRANSFER
+  CASH
+}
+
+enum QueueStatus {
+  WAITING
+  PREPARING
+  LAUNCHING
+  IN_WATER
+  RETURNING
+  COMPLETED
+  CANCELLED
+}
+
+enum MaintenanceStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum MaintenancePriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum NotificationType {
+  RESERVATION
+  PAYMENT
+  QUEUE
+  MAINTENANCE
+  GENERAL
+  AI_INSIGHT
+}
+
+enum BoatStatus {
+  AVAILABLE
+  IN_USE
+  MAINTENANCE
+  BLOCKED
+}
+
+enum ChecklistStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum DelinquencyStatus {
+  ACTIVE
+  RESOLVED
+  NEGOTIATING
+  LEGAL
+}
+
+enum FuelType {
+  GASOLINE
+  DIESEL
+  ETHANOL
+}
+
+// ============================================
+// USERS & AUTH
+// ============================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  phone         String?   @unique
+  passwordHash  String
+  name          String
+  cpfCnpj       String?   @unique
+  role          Role      @default(CLIENT)
+  avatar        String?
+  isActive      Boolean   @default(true)
+  emailVerified Boolean   @default(false)
+  lastLoginAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  // Relations
+  shares             Share[]
+  reservations       Reservation[]
+  charges            Charge[]
+  payments           Payment[]
+  notifications      Notification[]
+  aiLogs             AiLog[]
+  fuelLogsOperator   FuelLog[]         @relation("FuelOperator")
+  checklistsOperator Checklist[]       @relation("ChecklistOperator")
+  queueOperator      OperationalQueue[] @relation("QueueOperator")
+  queueClient        OperationalQueue[] @relation("QueueClient")
+  delinquencies      Delinquency[]
+  refreshTokens      RefreshToken[]
+  maintenanceReporter Maintenance[]    @relation("MaintenanceReporter")
+  shareSales         ShareSale[]
+  waiter             Waiter?
+
+  swapRequestsMade   ReservationSwap[]  @relation("SwapRequester")
+  swapRequestsReceived ReservationSwap[] @relation("SwapTarget")
+  @@index([email])
+  @@index([role])
+  @@index([isActive])
+  @@index([deletedAt])
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+// ============================================
+// BOATS & SHARES
+// ============================================
+
+model Boat {
+  id              String     @id @default(cuid())
+  name            String
+  model           String
+  year            Int
+  registration    String     @unique
+  capacity        Int
+  fuelType        FuelType   @default(GASOLINE)
+  fuelCapacity    Float
+  currentFuel     Float      @default(0)
+  hourMeter       Float      @default(0)
+  status          BoatStatus @default(AVAILABLE)
+  imageUrl        String?
+  totalShares     Int        @default(4)
+  monthlyFee      Float
+  shareValue      Float      @default(0)
+  locationBerth   String?
+  hasSound        Boolean    @default(false)
+  notes           String?
+  marketplaceDescription String? @map("marketplace_description")
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  deletedAt       DateTime?
+
+  // Relations
+  shares          Share[]
+  reservations    Reservation[]
+  fuelLogs        FuelLog[]
+  maintenances    Maintenance[]
+  checklists      Checklist[]
+  operationalQueue OperationalQueue[]
+  shareSales      ShareSale[]
+
+  @@index([status])
+  @@index([registration])
+  @@index([deletedAt])
+  @@map("boats")
+}
+
+model Share {
+  id              String    @id @default(cuid())
+  boatId          String
+  userId          String
+  sharePercentage Float
+  shareNumber     Int
+  monthlyValue    Float
+  startDate       DateTime
+  endDate         DateTime?
+  isActive        Boolean   @default(true)
+  contractUrl     String?
+  maxReservations  Int       @default(3)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
+
+  // Relations
+  boat   Boat @relation(fields: [boatId], references: [id])
+  user   User @relation(fields: [userId], references: [id])
+
+  @@unique([boatId, shareNumber])
+  @@index([userId])
+  @@index([boatId])
+  @@index([isActive])
+  @@map("shares")
+}
+
+// ============================================
+// RESERVATIONS & QUEUE
+// ============================================
+
+model Reservation {
+  id          String            @id @default(cuid())
+  boatId      String
+  userId      String
+  startDate   DateTime
+  endDate     DateTime
+  status      ReservationStatus @default(PENDING)
+  notes       String?
+  cancelledAt DateTime?
+  cancelReason String?
+  confirmedAt  DateTime?
+  expectedArrivalTime String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  deletedAt   DateTime?
+
+  // Relations
+  boat   Boat @relation(fields: [boatId], references: [id])
+  user   User @relation(fields: [userId], references: [id])
+  queue  OperationalQueue?
+  checklist Checklist?
+
+  swapsAsTarget  ReservationSwap[] @relation("SwapTarget")
+  swapsAsOffered ReservationSwap[] @relation("SwapOffered")
+  @@index([boatId])
+  @@index([userId])
+  @@index([status])
+  @@index([startDate, endDate])
+  @@map("reservations")
+}
+
+model Waitlist {
+  id          String   @id @default(cuid())
+  boatId      String
+  userId      String
+  desiredDate DateTime
+  priority    Int      @default(0)
+  isActive    Boolean  @default(true)
+  notifiedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([boatId, desiredDate])
+  @@index([userId])
+  @@map("waitlist")
+}
+
+model OperationalQueue {
+  id            String      @id @default(cuid())
+  boatId        String
+  reservationId String?     @unique
+  clientId      String
+  operatorId    String?
+  position      Int
+  status        QueueStatus @default(WAITING)
+  scheduledAt   DateTime
+  startedAt     DateTime?
+  completedAt   DateTime?
+  notes         String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  // Relations
+  boat        Boat         @relation(fields: [boatId], references: [id])
+  reservation Reservation? @relation(fields: [reservationId], references: [id])
+  client      User         @relation("QueueClient", fields: [clientId], references: [id])
+  operator    User?        @relation("QueueOperator", fields: [operatorId], references: [id])
+
+  @@index([boatId])
+  @@index([status])
+  @@index([scheduledAt])
+  @@index([position])
+  @@map("operational_queue")
+}
+
+// ============================================
+// FINANCE
+// ============================================
+
+model Charge {
+  id          String       @id @default(cuid())
+  userId      String
+  description String
+  amount      Float
+  dueDate     DateTime
+  status      ChargeStatus @default(PENDING)
+  category    String
+  reference   String?
+  boatId      String?
+  paidAt      DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  deletedAt   DateTime?
+
+  // Relations
+  user     User      @relation(fields: [userId], references: [id])
+  payments Payment[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([dueDate])
+  @@index([category])
+  @@map("charges")
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  chargeId      String
+  userId        String
+  amount        Float
+  method        PaymentMethod
+  transactionId String?
+  receiptUrl    String?
+  paidAt        DateTime      @default(now())
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  // Relations
+  charge Charge @relation(fields: [chargeId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@index([chargeId])
+  @@index([userId])
+  @@index([paidAt])
+  @@map("payments")
+}
+
+model Delinquency {
+  id          String            @id @default(cuid())
+  userId      String
+  totalAmount Float
+  oldestDue   DateTime
+  daysPastDue Int
+  status      DelinquencyStatus @default(ACTIVE)
+  blockedAt   DateTime?
+  resolvedAt  DateTime?
+  notes       String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@index([daysPastDue])
+  @@map("delinquency")
+}
+
+// ============================================
+// FUEL
+// ============================================
+
+model FuelPrice {
+  id        String   @id @default(cuid())
+  price     Float
+  fuelType  FuelType @default(GASOLINE)
+  setById   String?
+  notes     String?
+  createdAt DateTime @default(now())
+
+  @@index([fuelType, createdAt])
+  @@map("fuel_prices")
+}
+
+model FuelLog {
+  id          String   @id @default(cuid())
+  boatId      String
+  operatorId  String
+  liters      Float
+  pricePerLiter Float
+  totalCost   Float
+  fuelType    FuelType
+  hourMeter   Float?
+  notes       String?
+  imageUrl    String?  @db.Text
+  loggedAt    DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  boat     Boat @relation(fields: [boatId], references: [id])
+  operator User @relation("FuelOperator", fields: [operatorId], references: [id])
+
+  @@index([boatId])
+  @@index([operatorId])
+  @@index([loggedAt])
+  @@map("fuel_logs")
+}
+
+model GaugeExample {
+  id            String   @id @default(cuid())
+  imageBase64   String   @db.Text
+  mimeType      String   @default("image/jpeg")
+  percentage    Int      // 0-100 nível real do combustível
+  dashboardType String   @default("SPARK_LCD") // SPARK_LCD, GTI_COLOR, YAMAHA, etc
+  description   String?  // ex: "Barra com 5 de 8 segmentos acesos"
+  createdAt     DateTime @default(now())
+
+  @@index([dashboardType])
+  @@map("gauge_examples")
+}
+
+// ============================================
+// MAINTENANCE
+// ============================================
+
+model Maintenance {
+  id           String              @id @default(cuid())
+  boatId       String
+  reportedById String
+  title        String
+  description  String
+  priority     MaintenancePriority @default(MEDIUM)
+  status       MaintenanceStatus   @default(SCHEDULED)
+  estimatedCost Float?
+  actualCost   Float?
+  scheduledAt  DateTime?
+  startedAt    DateTime?
+  completedAt  DateTime?
+  notes        String?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  deletedAt    DateTime?
+
+  // Relations
+  boat       Boat @relation(fields: [boatId], references: [id])
+  reportedBy User @relation("MaintenanceReporter", fields: [reportedById], references: [id])
+
+  @@index([boatId])
+  @@index([status])
+  @@index([priority])
+  @@map("maintenance")
+}
+
+// ============================================
+// CHECKLISTS
+// ============================================
+
+model Checklist {
+  id                   String          @id @default(cuid())
+  boatId               String
+  operatorId           String
+  reservationId        String?         @unique
+  status               ChecklistStatus @default(PENDING)
+  type                 String
+  completedAt          DateTime?
+  notes                String?
+  hullSketchUrl        String?         @db.Text
+  hullSketchMarks      String?         @db.Text
+  videoUrl             String?         @db.Text
+  fuelPhotoUrl         String?         @db.Text
+  additionalObservations String?       @db.Text
+  lifeVestsLoaned      Int?
+  returnFuelPhotoUrl   String?         @db.Text
+  returnSketchMarks    String?         @db.Text
+  returnObservations   String?         @db.Text
+  returnDamageVideoUrl String?         @db.Text
+  returnCompletedAt    DateTime?
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+
+  // Relations
+  boat        Boat            @relation(fields: [boatId], references: [id])
+  operator    User            @relation("ChecklistOperator", fields: [operatorId], references: [id])
+  reservation Reservation?    @relation(fields: [reservationId], references: [id])
+  items       ChecklistItem[]
+
+  @@index([boatId])
+  @@index([operatorId])
+  @@index([status])
+  @@map("checklists")
+}
+
+model ChecklistItem {
+  id          String   @id @default(cuid())
+  checklistId String
+  label       String
+  checked     Boolean  @default(false)
+  notes       String?
+  photoUrl    String?
+  order       Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  checklist Checklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+
+  @@index([checklistId])
+  @@map("checklist_items")
+}
+
+// ============================================
+// NOTIFICATIONS
+// ============================================
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  body      String
+  data      Json?
+  read      Boolean          @default(false)
+  readAt    DateTime?
+  sentAt    DateTime         @default(now())
+  createdAt DateTime         @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([read])
+  @@index([type])
+  @@index([sentAt])
+  @@map("notifications")
+}
+
+// ============================================
+// AI
+// ============================================
+
+model AiLog {
+  id          String   @id @default(cuid())
+  userId      String
+  role        Role
+  prompt      String
+  response    String
+  context     String?
+  tokensUsed  Int      @default(0)
+  costUsd     Float    @default(0)
+  durationMs  Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([role])
+  @@index([createdAt])
+  @@map("ai_logs")
+}
+
+// ============================================
+// SHARE SALES (Venda de Cotas)
+// ============================================
+
+model ShareSale {
+  id             String   @id @default(cuid())
+  boatId         String
+  userId         String
+  shareNumber    Int
+  shareId        String?
+  paymentType    String   // AVISTA | FINANCIADO
+  totalValue     Float
+  downPayment    Float    @default(0)
+  installments   Int      @default(1)
+  installmentValue Float
+  dueDay         Int      // dia de vencimento (1-28)
+  startDate      DateTime
+  notes          String?
+  status         String   @default("ACTIVE") // ACTIVE | CANCELLED
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  boat   Boat @relation(fields: [boatId], references: [id])
+  user   User @relation(fields: [userId], references: [id])
+
+  @@index([boatId])
+  @@index([userId])
+  @@map("share_sales")
+}
+
+// ============================================
+// CARDÁPIO (Menu)
+// ============================================
+
+model MenuCategory {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  items MenuItem[]
+
+  @@map("menu_categories")
+}
+
+model MenuItem {
+  id            String   @id @default(cuid())
+  categoryId    String
+  name          String
+  description   String?
+  price         Float
+  costPrice     Float?
+  image         String?
+  isAvailable   Boolean  @default(true)
+  order         Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  category MenuCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  orderItems OrderItem[]
+
+  @@index([categoryId])
+  @@map("menu_items")
+}
+
+// ============================================
+// PDV (Ponto de Venda)
+// ============================================
+
+enum PDVPaymentMethod {
+  CASH
+  CREDIT
+  DEBIT
+  PIX
+  VOUCHER
+  MIXED
+}
+
+model RestaurantTable {
+  id               String   @id @default(cuid())
+  number           Int      @unique
+  name             String?
+  capacity         Int      @default(4)
+  isActive         Boolean  @default(true)
+  selfServiceToken String?  @unique
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  orders   Order[]
+  sessions SelfServiceSession[]
+
+  @@map("restaurant_tables")
+}
+
+model SelfServiceSession {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  tableId   String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  table RestaurantTable @relation(fields: [tableId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([expiresAt])
+  @@map("self_service_sessions")
+}
+
+model Waiter {
+  id             String   @id @default(cuid())
+  name           String
+  commissionRate Float    @default(10)
+  isActive       Boolean  @default(true)
+  userId         String?  @unique
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  orders Order[]
+
+  @@map("waiters")
+}
+
+model Terminal {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cashRegisters CashRegister[]
+
+  @@map("terminals")
+}
+
+model CashRegister {
+  id              String    @id @default(cuid())
+  terminalId      String
+  operatorName    String
+  openingAmount   Float     @default(0)
+  closingAmount   Float?
+  expectedAmount  Float?
+  totalSales      Float     @default(0)
+  totalOrders     Int       @default(0)
+  status          String    @default("OPEN") // OPEN | CLOSED
+  openedAt        DateTime  @default(now())
+  closedAt        DateTime?
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  terminal     Terminal               @relation(fields: [terminalId], references: [id])
+  orders       Order[]
+  transactions CashRegisterTransaction[]
+
+  @@index([terminalId])
+  @@index([status])
+  @@index([openedAt])
+  @@map("cash_registers")
+}
+
+model CashRegisterTransaction {
+  id              String   @id @default(cuid())
+  cashRegisterId  String
+  orderId         String?
+  type            String   // SALE | WITHDRAWAL | DEPOSIT | CHANGE
+  amount          Float
+  paymentMethod   String?  // CASH, CREDIT, DEBIT, PIX, VOUCHER
+  description     String?
+  createdAt       DateTime @default(now())
+
+  cashRegister CashRegister @relation(fields: [cashRegisterId], references: [id], onDelete: Cascade)
+  order        Order?       @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@index([cashRegisterId])
+  @@index([orderId])
+  @@map("cash_register_transactions")
+}
+
+// ============================================
+// ORDERS (Pedidos)
+// ============================================
+
+enum OrderStatus {
+  ANALYSIS    // Em Análise
+  PREPARING   // Em Preparo
+  READY       // Pronto
+  SERVED      // Na Mesa
+  DELIVERING  // Aguardando Fechamento
+  DONE        // Finalizado
+  CANCELLED   // Cancelado
+}
+
+enum OrderType {
+  TABLE       // Mesa
+  TAKEAWAY    // Retirada
+  DELIVERY    // Entrega
+  COUNTER     // Balcão (PDV)
+}
+
+model Order {
+  id                  String      @id @default(cuid())
+  number              Int         @unique @default(autoincrement())
+  status              OrderStatus @default(PREPARING)
+  type                OrderType   @default(TABLE)
+  tableNumber         String?
+  customerName        String?
+  notes               String?
+  subtotal            Float       @default(0)
+  discount            Float       @default(0)
+  discountType        String?     // PERCENT | FIXED
+  total               Float       @default(0)
+  paymentMethod       String?     // CASH, CREDIT, DEBIT, PIX, VOUCHER, MIXED
+  requiresPreparation Boolean     @default(true)
+  waiterCommission    Float       @default(0)
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  // PDV relations
+  restaurantTableId String?
+  waiterId          String?
+  cashRegisterId    String?
+
+  restaurantTable RestaurantTable? @relation(fields: [restaurantTableId], references: [id], onDelete: SetNull)
+  waiter          Waiter?          @relation(fields: [waiterId], references: [id], onDelete: SetNull)
+  cashRegister    CashRegister?    @relation(fields: [cashRegisterId], references: [id], onDelete: SetNull)
+
+  items        OrderItem[]
+  transactions CashRegisterTransaction[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([restaurantTableId])
+  @@index([waiterId])
+  @@index([cashRegisterId])
+  @@map("orders")
+}
+
+model OrderItem {
+  id          String @id @default(cuid())
+  orderId     String
+  menuItemId  String?
+  name        String
+  quantity    Int    @default(1)
+  unitPrice   Float
+  notes       String?
+
+  order    Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItem MenuItem? @relation(fields: [menuItemId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+// ── Marine Weather (Stormglass integration) ──────────────────────────────
+
+enum NavigationLevel {
+  BOM
+  ATENCAO
+  RUIM
+  PERIGOSO
+}
+
+model MarineWeatherSnapshot {
+  id                String          @id @default(cuid())
+  latitude          Float
+  longitude         Float
+  collectedAt       DateTime        @default(now())
+  source            String          @default("stormglass")
+
+  windSpeed         Float?
+  windDirection     Float?
+  gust              Float?
+
+  waveHeight        Float?
+  wavePeriod        Float?
+  waveDirection     Float?
+
+  swellHeight       Float?
+  swellDirection    Float?
+  swellPeriod       Float?
+
+  currentSpeed      Float?
+  currentDirection  Float?
+
+  airTemperature    Float?
+  waterTemperature  Float?
+  visibility        Float?
+  cloudCover        Float?
+  humidity          Float?
+  precipitation     Float?
+
+  navigationLevel   NavigationLevel @default(BOM)
+  navigationScore   Int             @default(0)
+  operatorSummary   String?
+  clientSummary     String?
+
+  isValid           Boolean         @default(true)
+  errorMessage      String?
+  rawJson           Json?
+
+  @@index([collectedAt(sort: Desc)])
+  @@index([latitude, longitude])
+  @@map("marine_weather_snapshots")
+}
+
+model ReservationSwap {
+  id                  String   @id @default(cuid())
+  reservationId       String
+  offeredReservationId String
+  requesterId         String
+  targetUserId        String
+  status              String   @default("PENDING") // PENDING, ACCEPTED, REJECTED
+  message             String?
+  respondedAt         DateTime?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  reservation         Reservation @relation("SwapTarget", fields: [reservationId], references: [id])
+  offeredReservation  Reservation @relation("SwapOffered", fields: [offeredReservationId], references: [id])
+  requester           User        @relation("SwapRequester", fields: [requesterId], references: [id])
+  targetUser          User        @relation("SwapTarget", fields: [targetUserId], references: [id])
+
+  @@index([reservationId])
+  @@index([offeredReservationId])
+  @@index([targetUserId, status])
+  @@index([requesterId])
+  @@map("reservation_swaps")
+}
